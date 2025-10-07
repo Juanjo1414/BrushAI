@@ -48,6 +48,7 @@ class BrushyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/forgot-password': (context) => const ForgotPasswordPage(),
         // 'home': (context) => HomeShell(email: ''), // Este no se usa directamente
       },
     );
@@ -279,6 +280,76 @@ class AuthService {
       return 'Error al iniciar sesión. Verifica tu conexión.';
     }
   }
+
+  // Método para recuperación de contraseña
+  Future<String?> resetPassword(String email) async {
+    try {
+      print(
+        '[AuthService.resetPassword] Iniciando reset para: ${email.trim().toLowerCase()}',
+      );
+
+      // Verificar conexión
+      if (!MongoService.isConnected) {
+        print(
+          '[AuthService.resetPassword] No hay conexión, intentando reconectar...',
+        );
+        await MongoService.ensureConnection();
+      }
+
+      email = email.trim().toLowerCase();
+      final col = MongoService.getCollection();
+
+      // Verificar si el usuario existe
+      final user = await col.findOne({"email": email});
+      if (user == null) {
+        print('[AuthService.resetPassword] Usuario no encontrado: $email');
+        return 'No se encontró una cuenta con ese correo electrónico.';
+      }
+
+      // Generar nueva contraseña temporal
+      final tempPassword = _generateTempPassword();
+      final newSalt = _randomSalt();
+      final newHash = _hash(newSalt, tempPassword);
+
+      // Actualizar en la base de datos
+      await col.updateOne(
+        {"email": email},
+        {
+          "\$set": {
+            "salt": newSalt,
+            "hash": newHash,
+            "tempPassword": tempPassword,
+            "resetDate": DateTime.now().toIso8601String(),
+          },
+        },
+      );
+
+      print('[AuthService.resetPassword] ✅ Contraseña reseteada para: $email');
+      print(
+        '[AuthService.resetPassword] Nueva contraseña temporal: $tempPassword',
+      );
+
+      // En una app real, aquí enviarías un email
+      // Por ahora, retornamos la contraseña temporal
+      return null; // Éxito
+    } catch (e, st) {
+      print('[AuthService.resetPassword] ❌ Error: $e');
+      print('[AuthService.resetPassword] StackTrace: $st');
+      return 'Error al restablecer la contraseña. Inténtalo de nuevo.';
+    }
+  }
+
+  String _generateTempPassword([int length = 8]) {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final r = Random();
+    return String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => chars.codeUnitAt(r.nextInt(chars.length)),
+      ),
+    );
+  }
 }
 
 // ----------------- Login Page -----------------
@@ -413,6 +484,24 @@ class _LoginPageState extends State<LoginPage> {
                             return 'La contraseña debe tener al menos 8 caracteres.';
                           return null;
                         },
+                      ),
+                      SizedBox(height: 12),
+                      Center(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ForgotPasswordPage(),
+                            ),
+                          ),
+                          child: Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ),
                       SizedBox(height: 18),
                       SizedBox(
@@ -1012,6 +1101,282 @@ class _BrushTimerState extends State<BrushTimer> {
             SizedBox(width: 12),
             OutlinedButton(onPressed: _resetTimer, child: Text('Reset')),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+// ----------------- Forgot Password Page -----------------
+
+class ForgotPasswordPage extends StatefulWidget {
+  const ForgotPasswordPage({super.key});
+
+  @override
+  _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
+}
+
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailCtrl = TextEditingController();
+  bool _loading = false;
+  bool _success = false;
+  final AuthService _auth = AuthService();
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    super.dispose();
+  }
+
+  void _resetPassword() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+
+    final err = await _auth.resetPassword(_emailCtrl.text);
+
+    setState(() => _loading = false);
+
+    if (err != null) {
+      _showError(err);
+    } else {
+      setState(() {
+        _success = true;
+        // En una app real, esto vendría del email
+      });
+    }
+  }
+
+  void _showError(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Recuperar Contraseña'),
+        backgroundColor: Color(0xFFF7FBFF),
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  BrushyLogo(size: 64),
+                  SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Brush IA',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Recupera tu contraseña',
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 28),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: _success ? _buildSuccessContent() : _buildFormContent(),
+              ),
+              SizedBox(height: 20),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Volver al inicio de sesión',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormContent() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '¿Olvidaste tu contraseña?',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Ingresa tu correo electrónico y te ayudaremos a restablecer tu contraseña.',
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          ),
+          SizedBox(height: 20),
+          TextFormField(
+            controller: _emailCtrl,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              labelText: 'Correo electrónico',
+              prefixIcon: Icon(Icons.email),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Ingresa tu correo.';
+              if (!RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+$").hasMatch(v))
+                return 'Correo inválido.';
+              return null;
+            },
+          ),
+          SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _loading ? null : _resetPassword,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _loading
+                  ? SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      'Restablecer Contraseña',
+                      style: TextStyle(fontSize: 16),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuccessContent() {
+    return Column(
+      children: [
+        Icon(Icons.check_circle, color: Colors.green, size: 64),
+        SizedBox(height: 16),
+        Text(
+          '¡Contraseña Restablecida!',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.green,
+          ),
+        ),
+        SizedBox(height: 12),
+        Text(
+          'Tu contraseña ha sido restablecida exitosamente.',
+          style: TextStyle(color: Colors.grey[600]),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 16),
+        Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.orange[50],
+            border: Border.all(color: Colors.orange[200]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.info, color: Colors.orange, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Contraseña Temporal',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[800],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Text(
+                'En una aplicación real, recibirías un email con las instrucciones de recuperación. Por ahora, usa esta información para acceder:',
+                style: TextStyle(fontSize: 12, color: Colors.orange[700]),
+              ),
+              SizedBox(height: 8),
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Nueva contraseña: temp123',
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              // Navegar al login
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Ir al Inicio de Sesión',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
         ),
       ],
     );
