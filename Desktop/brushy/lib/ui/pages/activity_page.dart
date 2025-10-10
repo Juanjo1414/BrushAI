@@ -1,5 +1,6 @@
 // lib/ui/pages/activity_page.dart
 import 'package:flutter/material.dart';
+import '../../utils/responsive_helper.dart';
 
 class ActivityPage extends StatelessWidget {
   const ActivityPage({super.key});
@@ -20,20 +21,78 @@ class ActivityPage extends StatelessWidget {
         foregroundColor: Colors.black87,
       ),
       body: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(
+          ResponsiveHelper.getResponsiveSize(context, 16),
+        ),
         itemCount: activities.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        separatorBuilder: (_, __) =>
+            SizedBox(height: ResponsiveHelper.getResponsiveSize(context, 10)),
         itemBuilder: (_, i) {
           final a = activities[i];
           return Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.event_note)),
-              title: Text(a.$1),
-              subtitle: Text(a.$2),
+              contentPadding: EdgeInsets.all(
+                ResponsiveHelper.getResponsiveSize(context, 12),
+              ),
+              leading: CircleAvatar(
+                radius: ResponsiveHelper.getResponsiveSize(context, 20),
+                backgroundColor: Colors.blue.shade50,
+                child: Icon(
+                  Icons.event_note,
+                  size: ResponsiveHelper.getResponsiveSize(context, 20),
+                  color: Colors.blue,
+                ),
+              ),
+              title: Text(
+                a.$1,
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 14),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Padding(
+                padding: EdgeInsets.only(
+                  top: ResponsiveHelper.getResponsiveSize(context, 4),
+                ),
+                child: Text(
+                  a.$2,
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      12,
+                    ),
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
               trailing: FilledButton.tonal(
                 onPressed: () {},
-                child: const Text('abrir'),
+                style: FilledButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveHelper.getResponsiveSize(context, 12),
+                    vertical: ResponsiveHelper.getResponsiveSize(context, 8),
+                  ),
+                ),
+                child: Text(
+                  'abrir',
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(
+                      context,
+                      12,
+                    ),
+                  ),
+                ),
               ),
             ),
           );
