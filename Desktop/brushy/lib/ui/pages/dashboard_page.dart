@@ -1,6 +1,7 @@
 // lib/ui/pages/dashboard_page.dart
 import 'package:flutter/material.dart';
 import '../../utils/responsive_helper.dart';
+import '../ml/ml_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -55,6 +56,23 @@ class DashboardPage extends StatelessWidget {
           ),
           SizedBox(height: ResponsiveHelper.getResponsiveSize(context, 20)),
           const _FriendsList(),
+          SizedBox(height: ResponsiveHelper.getResponsiveSize(context, 16)),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const MlPage()));
+              },
+              child: Text(
+                'Probar Clasificador IA',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 14),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -178,4 +196,5 @@ class _FriendsList extends StatelessWidget {
       ],
     );
   }
+  // fin de _FriendsList
 }

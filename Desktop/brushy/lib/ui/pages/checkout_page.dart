@@ -39,7 +39,7 @@ class CheckoutPage extends StatelessWidget {
             trailing: 'Aplicar código de promoción',
           ),
           SizedBox(height: ResponsiveHelper.getResponsiveSize(context, 12)),
-          ...items.map((p) => _PlanTile(plan: p)).toList(),
+          ...items.map((p) => _PlanTile(plan: p)),
           SizedBox(height: ResponsiveHelper.getResponsiveSize(context, 12)),
           _SummaryRow(label: 'Subtotal (${items.length})', value: subtotal),
           _SummaryRow(label: 'Impuestos', value: impuestos),
@@ -134,7 +134,7 @@ class _PlanTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Color.fromRGBO(0, 0, 0, 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

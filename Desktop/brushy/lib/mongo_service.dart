@@ -1,4 +1,5 @@
 // lib/mongo_service.dart
+import 'package:flutter/foundation.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 class MongoService {
@@ -15,24 +16,24 @@ class MongoService {
     _connected = false;
     _db = null;
     _usersCollection = null;
-    
+
     try {
-      print('[MongoService] Iniciando conexión...');
+      debugPrint('[MongoService] Iniciando conexión...');
       _db = await Db.create(_mongoUri);
-      
-      print('[MongoService] Abriendo conexión...');
+
+      debugPrint('[MongoService] Abriendo conexión...');
       await _db!.open();
-      
+
       // Verificar que la conexión esté activa
-      if (_db!.state != State.OPEN) {
+      if (_db!.state != State.open) {
         throw Exception('Database connection failed - state: ${_db!.state}');
       }
 
       _usersCollection = _db!.collection('users');
-      
+
       // Marcar como conectado ANTES de crear el índice
       _connected = true;
-      print('[MongoService] Conexión establecida correctamente');
+      debugPrint('[MongoService] Conexión establecida correctamente');
 
       // Crear índice único en email (opcional, puede fallar si ya existe)
       try {
@@ -41,18 +42,17 @@ class MongoService {
           unique: true,
           name: 'email_unique_index',
         );
-        print('[MongoService] Índice creado exitosamente');
+        debugPrint('[MongoService] Índice creado exitosamente');
       } catch (e) {
-        print('[MongoService] Índice ya existe o error al crear: $e');
+        debugPrint('[MongoService] Índice ya existe o error al crear: $e');
         // No es crítico si falla
       }
 
-      print('[MongoService] ✅ Conectado a MongoDB exitosamente');
+      debugPrint('[MongoService] ✅ Conectado a MongoDB exitosamente');
       debugStatus(); // Mostrar estado para debugging
-      
     } catch (e, stackTrace) {
-      print('[MongoService] ❌ Error al conectar: $e');
-      print('[MongoService] StackTrace: $stackTrace');
+      debugPrint('[MongoService] ❌ Error al conectar: $e');
+      debugPrint('[MongoService] StackTrace: $stackTrace');
       _connected = false;
       _db = null;
       _usersCollection = null;
@@ -62,7 +62,8 @@ class MongoService {
   }
 
   /// Verificar si la conexión está activa
-  static bool get isConnected => _connected && _db != null && _db!.state == State.OPEN;
+  static bool get isConnected =>
+      _connected && _db != null && _db!.state == State.open;
 
   /// Devuelve la colección indicada (por defecto 'users').
   static DbCollection getCollection([String name = 'users']) {
@@ -70,7 +71,7 @@ class MongoService {
       throw StateError(
           'MongoService: not connected. Call MongoService.connect() first. Current state: connected=$_connected, db=${_db?.state}');
     }
-    
+
     if (name == 'users' && _usersCollection != null) {
       return _usersCollection!;
     }
@@ -99,12 +100,12 @@ class MongoService {
   /// Cerrar conexión
   static Future<void> close() async {
     if (!_connected || _db == null) return;
-    
+
     try {
       await _db!.close();
-      print('[MongoService] Conexión cerrada correctamente');
+      debugPrint('[MongoService] Conexión cerrada correctamente');
     } catch (e) {
-      print('[MongoService] Error al cerrar conexión: $e');
+      debugPrint('[MongoService] Error al cerrar conexión: $e');
     } finally {
       _connected = false;
       _db = null;
@@ -115,7 +116,7 @@ class MongoService {
   /// Método para reconectar si la conexión se pierde
   static Future<void> ensureConnection() async {
     if (!isConnected) {
-      print('[MongoService] Reconectando...');
+      debugPrint('[MongoService] Reconectando...');
       _connected = false; // Reset del estado
       await connect();
     }
@@ -123,11 +124,11 @@ class MongoService {
 
   /// Método de debugging para ver el estado actual
   static void debugStatus() {
-    print('[MongoService DEBUG]');
-    print('  _connected: $_connected');
-    print('  _db: $_db');
-    print('  _db?.state: ${_db?.state}');
-    print('  _usersCollection: $_usersCollection');
-    print('  isConnected: $isConnected');
+    debugPrint('[MongoService DEBUG]');
+    debugPrint('  _connected: $_connected');
+    debugPrint('  _db: $_db');
+    debugPrint('  _db?.state: ${_db?.state}');
+    debugPrint('  _usersCollection: $_usersCollection');
+    debugPrint('  isConnected: $isConnected');
   }
 }

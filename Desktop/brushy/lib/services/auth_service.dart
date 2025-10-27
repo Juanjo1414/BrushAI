@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import '../mongo_service.dart';
+import 'email_service.dart';
 
 class AuthService {
   static const collectionName = "users";
@@ -189,11 +190,20 @@ class AuthService {
     }
 
     final token = result['token'];
-    print(
-      'Token enviado a $email: $token',
-    ); // En producción, aquí enviarías el email
+    // Enviar correo con EmailJS
+    final emailErr = await EmailService.sendResetTokenEmail(
+      toEmail: email.trim().toLowerCase(),
+      token: token,
+    );
 
-    return null; // Sin error
+    if (emailErr != null) {
+      // Si falla el correo, conserva el flujo pero informa
+      print('[AuthService.sendResetToken] Error enviando correo: $emailErr');
+      return 'No se pudo enviar el correo: $emailErr';
+    }
+
+    print('[AuthService.sendResetToken] ✅ Token enviado a $email');
+    return null; // éxito
   }
 
   // Método para verificar token y cambiar contraseña
