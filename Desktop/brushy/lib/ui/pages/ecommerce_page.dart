@@ -23,7 +23,7 @@ class EcommercePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Color.fromRGBO(0, 0, 0, 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -192,13 +192,13 @@ class _RecommendationCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFF1976D2).withOpacity(0.8),
-            const Color(0xFF42A5F5).withOpacity(0.6),
+            Color.fromRGBO(25, 118, 210, 0.8),
+            Color.fromRGBO(66, 165, 245, 0.6),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Color.fromRGBO(0, 0, 0, 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -237,7 +237,7 @@ class _StepTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Color.fromRGBO(0, 0, 0, 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

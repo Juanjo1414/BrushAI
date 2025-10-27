@@ -24,43 +24,68 @@ class ResponsiveHelper {
 
   static double getResponsiveFontSize(BuildContext context, double baseSize) {
     final width = getScreenWidth(context);
-    if (width < 360) return baseSize * 0.85;
-    if (width < 600) return baseSize;
-    if (width < 1200) return baseSize * 1.1;
+    if (width < 360) {
+      return baseSize * 0.85;
+    }
+    if (width < 600) {
+      return baseSize;
+    }
+    if (width < 1200) {
+      return baseSize * 1.1;
+    }
     return baseSize * 1.2;
   }
 
   static double getResponsiveSize(BuildContext context, double baseSize) {
     final width = getScreenWidth(context);
-    if (width < 360) return baseSize * 0.8;
-    if (width < 600) return baseSize;
-    if (width < 1200) return baseSize * 1.1;
+    if (width < 360) {
+      return baseSize * 0.8;
+    }
+    if (width < 600) {
+      return baseSize;
+    }
+    if (width < 1200) {
+      return baseSize * 1.1;
+    }
     return baseSize * 1.2;
   }
 
   static EdgeInsets getResponsivePadding(BuildContext context) {
     final width = getScreenWidth(context);
-    if (width < 360)
+    if (width < 360) {
       return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
-    if (width < 600)
+    }
+    if (width < 600) {
       return const EdgeInsets.symmetric(horizontal: 20, vertical: 16);
-    if (width < 1200)
+    }
+    if (width < 1200) {
       return const EdgeInsets.symmetric(horizontal: 32, vertical: 24);
+    }
     return const EdgeInsets.symmetric(horizontal: 64, vertical: 32);
   }
 
   static EdgeInsets getResponsiveMargin(BuildContext context) {
     final width = getScreenWidth(context);
-    if (width < 360) return const EdgeInsets.all(8);
-    if (width < 600) return const EdgeInsets.all(12);
-    if (width < 1200) return const EdgeInsets.all(16);
+    if (width < 360) {
+      return const EdgeInsets.all(8);
+    }
+    if (width < 600) {
+      return const EdgeInsets.all(12);
+    }
+    if (width < 1200) {
+      return const EdgeInsets.all(16);
+    }
     return const EdgeInsets.all(24);
   }
 
   static double getContainerMaxWidth(BuildContext context) {
     final width = getScreenWidth(context);
-    if (width < 600) return width * 0.95;
-    if (width < 1200) return 600;
+    if (width < 600) {
+      return width * 0.95;
+    }
+    if (width < 1200) {
+      return 600;
+    }
     return 800;
   }
 }

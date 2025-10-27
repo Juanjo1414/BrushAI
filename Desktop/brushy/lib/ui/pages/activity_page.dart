@@ -35,7 +35,7 @@ class ActivityPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Color.fromRGBO(0, 0, 0, 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
